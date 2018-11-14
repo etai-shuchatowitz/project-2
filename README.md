@@ -31,3 +31,5 @@ vals are: StatData{precision=1.0, recall=1.0, fMeasure=1.0}
 vals are: StatData{precision=1.0, recall=1.0, fMeasure=1.0}
 vals are: StatData{precision=1.0, recall=1.0, fMeasure=1.0}
 ```
+
+The optimal K seems to be K=6. This gets the highest percentage of accuracy without overfitting the data.

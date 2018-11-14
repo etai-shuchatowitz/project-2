@@ -22,7 +22,7 @@ public class Main {
         trainData.trainDataAndGetLabels();
         int[] labels = trainData.getBestLabels();
 
-
+        int k = 5;
 
         int[] actualLabels = {0, 0, 2, 0, 1, 1, 2, 2, 1, 1};
         int[] predictedLabels = new int[actualLabels.length];
@@ -30,7 +30,7 @@ public class Main {
 
         int count = 0;
         for (final File fileEntry : folder.listFiles()) {
-            KNearestNeighbor kNearestNeighbor = new KNearestNeighbor(5, 3);
+            KNearestNeighbor kNearestNeighbor = new KNearestNeighbor(6, 3);
             int prediction = kNearestNeighbor.kNearestNeighbor(fileEntry.toString(), labels);
             predictedLabels[count] = prediction;
             Map<Integer, Float> fuzzyResults = kNearestNeighbor.getPercentages();
