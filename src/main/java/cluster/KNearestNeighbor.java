@@ -1,6 +1,7 @@
 package cluster;
 
 import distance.DistanceUtil;
+import matrix.MatrixUtils;
 import train.TrainData;
 
 import java.io.IOException;
@@ -26,6 +27,8 @@ public class KNearestNeighbor {
 
         double[][] tfidf = trainData.getTfidfOfTrainedDataAndNewFile(fileName);
 
+        MatrixUtils.write2DMatrixToCSV(tfidf, "matrix");
+
         Map<Double, Integer> distancesToLabel = new TreeMap<>(Collections.reverseOrder());
 
         System.out.println("tfidf is: " + tfidf.length);
@@ -46,6 +49,11 @@ public class KNearestNeighbor {
             }
             count++;
         }
+
+        for (Map.Entry<Integer, Integer> entry : kBestLabels.entrySet()) {
+            System.out.println(entry);
+        }
+
         return integerToFolderName.get(kBestLabels.firstKey());
     }
 }

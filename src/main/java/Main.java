@@ -1,10 +1,7 @@
-import Jama.Matrix;
 import cluster.KNearestNeighbor;
-import matrix.MatrixUtils;
 import train.TrainData;
 
 import java.io.File;
-import java.util.Arrays;
 
 public class Main {
 

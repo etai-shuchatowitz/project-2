@@ -52,7 +52,7 @@ public class PreProcess {
         }
 
         for (Map.Entry<String, Integer> nGramEntry : nGramFrequency.entrySet()) {
-            if (nGramEntry.getValue() > 15 && nGramEntry.getKey().length() > 3) {
+            if (nGramEntry.getValue() > 3 && nGramEntry.getKey().length() > 3) {
                 nGrams.add(nGramEntry.getKey());
             }
         }
@@ -116,6 +116,9 @@ public class PreProcess {
 
     public List<String> getAllPhrasesInDocuments(Map<String, String> documents) throws IOException {
         List<String> nGrams = findNGrams(documents);
+//        for(String nGram : nGrams) {
+//            System.out.println(nGram);
+//        }
         return nGrams;
     }
 }
