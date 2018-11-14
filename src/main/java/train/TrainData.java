@@ -12,33 +12,45 @@ import java.util.Map;
 public class TrainData {
 
     private double[][] bestClusters;
-    private double[][] tfidf;
     private int[] bestLabels;
 
     public double[][] getBestClusters() {
         return bestClusters;
     }
 
-    public double[][] getTfidf() {
-        return tfidf;
-    }
-
     public int[] getBestLabels() {
         return bestLabels;
     }
 
-    public void trainData() throws IOException {
+    public double[][] getTfidfOfTrainedDataAndNewFile(String fileName) throws IOException {
         String extension = "txt";
-        String pathName = "src/main/resources/dataset_3/data";
+        String pathName = "src/main/resources/data";
         PreProcess preProcess = new PreProcess();
+        PreProcess.fillStopWords();
+        Map<String, String> documents = preProcess.kNNPreprocessDocument(extension, pathName, fileName);
+        List<String> phrases = preProcess.getAllPhrasesInDocuments(documents);
+
+        MatrixUtils matrixUtils = new MatrixUtils();
+
+        double[][] documentMatrix = matrixUtils.calculateDocumentMatrix(documents, phrases);
+        return matrixUtils.convertToTfIdf(documentMatrix, documentMatrix.length, documentMatrix[0].length);
+    }
+
+    public void trainDataAndGetLabels() throws IOException {
+        String extension = "txt";
+        String pathName = "src/main/resources/data";
+        PreProcess preProcess = new PreProcess();
+        PreProcess.fillStopWords();
         Map<String, String> documents = preProcess.preprocessDocument(extension, pathName);
         List<String> phrases = preProcess.getAllPhrasesInDocuments(documents);
 
-        double[][] documentMatrix = MatrixUtils.calculateDocumentMatrix(documents, phrases);
-        tfidf = MatrixUtils.convertToTfIdf(documentMatrix, documentMatrix.length, documentMatrix[0].length);
+        MatrixUtils matrixUtils = new MatrixUtils();
 
-        Map<Integer, Integer> documentNumberToLabelNumber = MatrixUtils.getDocumentNumberToLabelNumber();
-        Map<Integer, List<Integer>> folderToListOfIs = MatrixUtils.getFolderToListOfIs();
+        double[][] documentMatrix = matrixUtils.calculateDocumentMatrix(documents, phrases);
+        double[][] tfidf = matrixUtils.convertToTfIdf(documentMatrix, documentMatrix.length, documentMatrix[0].length);
+
+        Map<Integer, Integer> documentNumberToLabelNumber = matrixUtils.getDocumentNumberToLabelNumber();
+        Map<Integer, List<Integer>> folderToListOfIs = matrixUtils.getFolderToListOfIs();
 
         int k = 3;
 

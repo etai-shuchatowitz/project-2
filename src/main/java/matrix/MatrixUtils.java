@@ -14,20 +14,20 @@ import java.util.*;
 
 public class MatrixUtils {
 
-    private static Map<String, Integer> wordsPerDoc = new HashMap<>();
-    private static Map<String, Integer> numberOfDocsContainingWord = new HashMap<>();
-    private static Map<Integer, String> documentNumberToDocumentName = new HashMap<>();
-    private static Map<Integer, String> wordNumberToPhrase = new HashMap<>();
+    private Map<String, Integer> wordsPerDoc = new HashMap<>();
+    private Map<String, Integer> numberOfDocsContainingWord = new HashMap<>();
+    private Map<Integer, String> documentNumberToDocumentName = new HashMap<>();
+    private Map<Integer, String> wordNumberToPhrase = new HashMap<>();
 
-    private static Map<Integer, List<Integer>> folderToListOfIs = new HashMap<>();
+    private Map<Integer, List<Integer>> folderToListOfIs = new HashMap<>();
 
-    public static Map<Integer, Integer> getDocumentNumberToLabelNumber() {
+    public Map<Integer, Integer> getDocumentNumberToLabelNumber() {
         return documentNumberToLabelNumber;
     }
 
-    private static Map<Integer, Integer> documentNumberToLabelNumber = new HashMap<>();
+    private Map<Integer, Integer> documentNumberToLabelNumber = new HashMap<>();
 
-    public static double[][] calculateDocumentMatrix(Map<String, String> textPerDoc, List<String> allPhrases) {
+    public double[][] calculateDocumentMatrix(Map<String, String> textPerDoc, List<String> allPhrases) {
 
         double[][] documentMatrix = new double[textPerDoc.size()][allPhrases.size()]; // initialize matrix of docs by phrases
 
@@ -40,7 +40,9 @@ public class MatrixUtils {
 
             documentNumberToDocumentName.put(documentNumber, documentName);
 
-            fillFolderToListOfIs(documentName, documentNumber);
+            if(!documentName.contains("unknown")) {
+                fillFolderToListOfIs(documentName, documentNumber);
+            }
 
             int wordNumber = 0;
 
@@ -77,7 +79,7 @@ public class MatrixUtils {
         return documentMatrix;
     }
 
-    private static void fillFolderToListOfIs(String documentName, int i) {
+    private void fillFolderToListOfIs(String documentName, int i) {
         List<Integer> integers;
         if(documentName.contains("C1")) {
             integers = folderToListOfIs.getOrDefault(0, new ArrayList<>());
@@ -97,12 +99,12 @@ public class MatrixUtils {
         }
     }
 
-    public static double[][] convertToTfIdf(double[][] documentMatrix, int x, int y) {
+    public double[][] convertToTfIdf(double[][] documentMatrix, int x, int y) {
         double[][] tfidfMatrix = new double[x][y];
 
-        for (Map.Entry<Integer, List<Integer>> folder : folderToListOfIs.entrySet()) {
-            System.out.println(folder);
-        }
+//        for (Map.Entry<Integer, List<Integer>> folder : folderToListOfIs.entrySet()) {
+//            System.out.println(folder);
+//        }
 
         for(int document = 0; document < x; document++) {
 
@@ -127,7 +129,7 @@ public class MatrixUtils {
         return tfidfMatrix;
     }
 
-    public static void generateTopicsPerFolder(double[][] tfidf) throws IOException {
+    public void generateTopicsPerFolder(double[][] tfidf) throws IOException {
 
         for (Map.Entry<Integer, List<Integer>> folder : folderToListOfIs.entrySet()) {
             double[][] folderTfIdfMatrix = new double[folder.getValue().size()][tfidf[0].length];
@@ -169,7 +171,7 @@ public class MatrixUtils {
 
     }
 
-    public static int[][] generateConfusionMatrix(int[] labels) {
+    public int[][] generateConfusionMatrix(int[] labels) {
         int[][] confusionMatrix = new int[folderToListOfIs.keySet().size()][folderToListOfIs.keySet().size()];
         for (Map.Entry<Integer, List<Integer>> folder : folderToListOfIs.entrySet()) {
             int actualLabel = folder.getKey();
@@ -245,7 +247,7 @@ public class MatrixUtils {
         writer.close();
     }
 
-    public static Map<Integer, List<Integer>> getFolderToListOfIs() {
+    public Map<Integer, List<Integer>> getFolderToListOfIs() {
         return folderToListOfIs;
     }
 }

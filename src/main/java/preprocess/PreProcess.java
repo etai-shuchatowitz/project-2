@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 public class PreProcess {
 
     private static final Logger LOG = LogManager.getLogger(StanfordNLPClient.class);
+    private static Set<String> stopWords;
 
     private static LinkedHashMap<String, String> lemmasizeDocs(Map<String, String> docToText) {
 
@@ -29,17 +30,13 @@ public class PreProcess {
         return lemmasizedDocs;
     }
 
-    private static Set<String> fillStopWords() {
-
-        Set<String> stopWords = null;
+    public static void fillStopWords() {
         // https://github.com/Yoast/YoastSEO.js/blob/develop/src/config/stopwords.js
         try {
             stopWords = new HashSet<>(Files.readAllLines(Paths.get("src/main/resources/stop_words.txt")));
         } catch (IOException e) {
             LOG.error("Error parsing data");
         }
-
-        return stopWords;
     }
 
     private static List<String> findNGrams(Map<String, String> docToText) throws IOException {
@@ -56,7 +53,6 @@ public class PreProcess {
 
         for (Map.Entry<String, Integer> nGramEntry : nGramFrequency.entrySet()) {
             if (nGramEntry.getValue() > 15 && nGramEntry.getKey().length() > 3) {
-                //System.out.println(entry.getKey());
                 nGrams.add(nGramEntry.getKey());
             }
         }
@@ -71,47 +67,55 @@ public class PreProcess {
      *
      * @throws IOException
      */
-    public static LinkedHashMap<String, String> getDocAsStringWithoutStopwords(String pathName, String extension, Set<String> stopWords) throws IOException {
+    public static LinkedHashMap<String, String> getDocAsStringWithoutStopwords(String pathName, String extension) throws IOException {
 
         LinkedHashMap<String, String> docNameToString = new LinkedHashMap<>();
 
         String[] extensions = {extension};
-        Iterator<File> iterator = FileUtils.iterateFiles(new File(pathName), extensions, true); //
+        Iterator<File> iterator = FileUtils.iterateFiles(new File(pathName), extensions, true);
         while (iterator.hasNext()) { // for each file in the folder
-            StringBuffer stringBuffer = new StringBuffer();
             Path path = Paths.get(iterator.next().getAbsolutePath());
-            try (Stream<String> stream = Files.lines(path)) {
-                stream.forEach(file -> {
-                    String stringWithoutPunctuation = file.replaceAll("\\p{Punct}", "").toLowerCase(); // remove punctuation per line
-                    List<String> splitWords = new ArrayList<>(Arrays.asList(stringWithoutPunctuation.split(" ")));
-                    splitWords.removeAll(stopWords); // remove the stop words
-                    for (String word : splitWords) {
-                        String parsedWord = word.trim();
-                        if (parsedWord.length() > 0) {
-                            stringBuffer.append(parsedWord + " ");
-                        }
-                    }
-                });
-            } catch (IOException e) {
-                LOG.error(e.getMessage(), e);
-            }
-            docNameToString.put(path.toString(), stringBuffer.toString()); // store each doc in its own string for later preprocessing.
+            String fileString = handleSingleDocument(path);
+            docNameToString.put(path.toString(), fileString); // store each doc in its own string for later preprocessing.
         }
         return docNameToString;
     }
 
+    public static String handleSingleDocument(Path path) {
+        StringBuffer stringBuffer = new StringBuffer();
+        try (Stream<String> stream = Files.lines(path)) {
+            stream.forEach(file -> {
+                String stringWithoutPunctuation = file.replaceAll("\\p{Punct}", "").toLowerCase(); // remove punctuation per line
+                List<String> splitWords = new ArrayList<>(Arrays.asList(stringWithoutPunctuation.split(" ")));
+                splitWords.removeAll(stopWords); // remove the stop words
+                for (String word : splitWords) {
+                    String parsedWord = word.trim();
+                    if (parsedWord.length() > 0) {
+                        stringBuffer.append(parsedWord + " ");
+                    }
+                }
+            });
+            return stringBuffer.toString();
+        } catch (IOException e) {
+            LOG.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
     public LinkedHashMap<String, String> preprocessDocument(String extension, String pathName) throws IOException {
-        Set<String> stopWords = fillStopWords();
-        LinkedHashMap<String, String> docNameToStringWithoutStopwords = getDocAsStringWithoutStopwords(pathName, extension, stopWords);
+        LinkedHashMap<String, String> docNameToStringWithoutStopwords = getDocAsStringWithoutStopwords(pathName, extension);
+        return lemmasizeDocs(docNameToStringWithoutStopwords);
+    }
+
+    public LinkedHashMap<String, String> kNNPreprocessDocument(String extension, String pathName, String comparedFile) throws IOException {
+        LinkedHashMap<String, String> docNameToStringWithoutStopwords = getDocAsStringWithoutStopwords(pathName, extension);
+        Path comparedPath = Paths.get(comparedFile);
+        docNameToStringWithoutStopwords.put(comparedPath.toString(), handleSingleDocument(comparedPath));
         return lemmasizeDocs(docNameToStringWithoutStopwords);
     }
 
     public List<String> getAllPhrasesInDocuments(Map<String, String> documents) throws IOException {
         List<String> nGrams = findNGrams(documents);
-        System.out.println(nGrams.size());
-        for (String nGram : nGrams) {
-            System.out.println(nGram);
-        }
         return nGrams;
     }
 }
