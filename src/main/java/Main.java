@@ -22,7 +22,7 @@ public class Main {
         trainData.trainDataAndGetLabels();
         int[] labels = trainData.getBestLabels();
 
-        KNearestNeighbor kNearestNeighbor = new KNearestNeighbor(5);
+
 
         int[] actualLabels = {0, 0, 2, 0, 1, 1, 2, 2, 1, 1};
         int[] predictedLabels = new int[actualLabels.length];
@@ -30,11 +30,18 @@ public class Main {
 
         int count = 0;
         for (final File fileEntry : folder.listFiles()) {
+            KNearestNeighbor kNearestNeighbor = new KNearestNeighbor(5, 3);
             int prediction = kNearestNeighbor.kNearestNeighbor(fileEntry.toString(), labels);
             predictedLabels[count] = prediction;
-            System.out.println(fileEntry.toString() + ": " + integerToFolderName.get(prediction));
+            Map<Integer, Float> fuzzyResults = kNearestNeighbor.getPercentages();
+            System.out.println(fileEntry.toString());
+            for (Map.Entry<Integer, Float> fuzzyEntry : fuzzyResults.entrySet()) {
+                System.out.println(integerToFolderName.get(fuzzyEntry.getKey()) + ": " + fuzzyEntry.getValue());
+            }
             count++;
         }
+
+
 
         int[][] confusionMatrix = MatrixUtils.generateConfusionMatrix(predictedLabels, actualLabels, 3);
 
